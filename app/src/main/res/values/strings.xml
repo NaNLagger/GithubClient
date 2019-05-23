@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">GithubClient</string>
+    <string name="search_title">Search</string>
+    <string name="favorite_title">Favorite</string>
+    <string name="logout">Logout</string>
+    <string name="repository">Repository</string>
+    <string name="add_to_favorite">Add to favorite</string>
+    <string name="remove_from_favorite">Remove from favorite</string>
+</resources>
