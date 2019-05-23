@@ -17,4 +17,7 @@ interface RepositoriesListView: MvpView {
 
     @StateStrategyType(OneExecutionStateStrategy::class)
     fun showError(message: String)
+
+    @StateStrategyType(AddToEndSingleStrategy::class)
+    fun setEmpty(isEmpty: Boolean)
 }

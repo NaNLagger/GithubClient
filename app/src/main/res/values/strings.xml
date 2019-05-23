@@ -6,4 +6,8 @@
     <string name="repository">Repository</string>
     <string name="add_to_favorite">Add to favorite</string>
     <string name="remove_from_favorite">Remove from favorite</string>
+    <string name="empty_content">No result</string>
+    <string name="forks_count">Forks: %1$d</string>
+    <string name="stars_count">Stars: %1$d</string>
+
 </resources>

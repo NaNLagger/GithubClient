@@ -39,7 +39,7 @@ class MainActivity : MvpAppCompatActivity(), MainView {
 
     @ProvidePresenter
     fun providePresenter(): MainPresenter =
-        scope.getInstance(MainPresenter::class.java)
+            scope.getInstance(MainPresenter::class.java)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         scope = Toothpick.openScope(Scopes.APP_SCOPE)
@@ -52,8 +52,12 @@ class MainActivity : MvpAppCompatActivity(), MainView {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if(googleSignInService.isSignInResult(requestCode) && data != null) {
-            googleSignInService.handleSignInResult(data, authRepository::sendAccountResult, authRepository::sendError)
+        if (googleSignInService.isSignInResult(requestCode) && data != null) {
+            googleSignInService.handleSignInResult(
+                    data,
+                    { authRepository.sendAccountResult(AuthCommand.LoginCommand, it) },
+                    { authRepository.sendError(AuthCommand.LoginCommand, it) }
+            )
         }
     }
 
@@ -79,13 +83,13 @@ class MainActivity : MvpAppCompatActivity(), MainView {
 
     private fun subscribeOnAuthCommand() {
         authCommandDisposable = authRepository.authCommand
-            .subscribe {
-                when(it) {
-                    is AuthCommand.LoginCommand -> googleSignInService.signIn()
-                    is AuthCommand.LogoutCommand -> googleSignInService.signOut(authRepository::sendLogoutResult)
-                    is AuthCommand.GetUserCommand -> authRepository.sendAccountResult(googleSignInService.getLastAccount())
+                .subscribe {
+                    when (it) {
+                        is AuthCommand.LoginCommand -> googleSignInService.signIn()
+                        is AuthCommand.LogoutCommand -> googleSignInService.signOut(authRepository::sendLogoutResult)
+                        is AuthCommand.GetUserCommand -> authRepository.sendAccountResult(AuthCommand.GetUserCommand, googleSignInService.getLastAccount())
+                    }
                 }
-            }
     }
 
     private fun unsubscribeOnAuthCommand() {

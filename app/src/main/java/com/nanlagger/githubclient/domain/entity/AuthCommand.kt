@@ -9,8 +9,8 @@ sealed class AuthCommand {
     object GetUserCommand : AuthCommand()
 }
 
-sealed class AuthResult {
+sealed class AuthResult(val command: AuthCommand) {
 
-    class AccountResult(val account: GoogleSignInAccount?, val error: Throwable? = null) : AuthResult()
-    object LogoutResult : AuthResult()
+    class AccountResult(command: AuthCommand, val account: GoogleSignInAccount?, val error: Throwable? = null) : AuthResult(command)
+    class LogoutResult(command: AuthCommand) : AuthResult(command)
 }

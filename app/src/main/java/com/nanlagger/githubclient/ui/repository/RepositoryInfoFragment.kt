@@ -11,6 +11,7 @@ import com.nanlagger.githubclient.domain.entity.Repository
 import com.nanlagger.githubclient.presentation.repository.RepositoryInfoPresenter
 import com.nanlagger.githubclient.presentation.repository.RepositoryInfoView
 import com.nanlagger.githubclient.tools.argument
+import com.nanlagger.githubclient.tools.format
 import com.nanlagger.githubclient.tools.visible
 import com.nanlagger.githubclient.ui.common.BaseFragment
 import com.squareup.picasso.Picasso
@@ -36,7 +37,7 @@ class RepositoryInfoFragment : BaseFragment(), RepositoryInfoView {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         toolbar.apply {
-            setNavigationIcon(R.drawable.ic_arrow_back_white_24dp)
+            setNavigationIcon(R.drawable.ic_arrow_back_black_24dp)
             setNavigationOnClickListener { presenter.back() }
             buttonFavorite.setOnClickListener { presenter.changeFavoriteState() }
         }
@@ -70,9 +71,9 @@ class RepositoryInfoFragment : BaseFragment(), RepositoryInfoView {
         textRepoName.text = repository.name
         textRepoDescription.text = repository.description
         textOwnerName.text = repository.user.login
-        textDateCreated.text = repository.createdAt.toString()
-        textCountForks.text = "Forks: ${repository.forksCount}"
-        textCountStars.text = "Stars: ${repository.starsCount}"
+        textDateCreated.text = repository.createdAt.format()
+        textCountForks.text = getString(R.string.forks_count, repository.forksCount)
+        textCountStars.text = getString(R.string.stars_count, repository.starsCount)
         buttonFavorite.text = if (!repository.isFavorite) getString(R.string.add_to_favorite) else getString(R.string.remove_from_favorite)
         Picasso.get()
                 .load(repository.user.avatarUrl)

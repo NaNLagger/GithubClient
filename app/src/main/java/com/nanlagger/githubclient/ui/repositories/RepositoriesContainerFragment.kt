@@ -5,20 +5,43 @@ import android.view.View
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.FragmentPagerAdapter
 import androidx.viewpager.widget.ViewPager
+import com.arellomobile.mvp.MvpView
+import com.arellomobile.mvp.presenter.InjectPresenter
+import com.arellomobile.mvp.presenter.ProvidePresenter
 import com.nanlagger.githubclient.R
+import com.nanlagger.githubclient.di.Scopes
+import com.nanlagger.githubclient.presentation.repositories.RepositoriesContainerPresenter
+import com.nanlagger.githubclient.tools.visible
 import com.nanlagger.githubclient.ui.common.BaseFragment
 import kotlinx.android.synthetic.main.fragment_reposirories_container.*
+import toothpick.Scope
+import toothpick.Toothpick
+import toothpick.config.Module
 
-class RepositoriesContainerFragment : BaseFragment() {
+class RepositoriesContainerFragment : BaseFragment(), MvpView {
     override val layoutId: Int = R.layout.fragment_reposirories_container
 
     private val adapter: MyIssuesPagesAdapter by lazy { MyIssuesPagesAdapter() }
 
+    @InjectPresenter
+    lateinit var presenter: RepositoriesContainerPresenter
+
+    @ProvidePresenter
+    fun providePresenter(): RepositoriesContainerPresenter =
+            scope.getInstance(RepositoriesContainerPresenter::class.java)
+
+    private lateinit var scope: Scope
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         toolbar.apply {
             inflateMenu(R.menu.menu_repositories)
+            setOnMenuItemClickListener {
+                if (it.itemId == R.id.menu_item_logout) {
+                    presenter.logout()
+                }
+                false
+            }
         }
         searchView.apply {
             setOnQueryTextListener(object : SearchView.OnQueryTextListener {
@@ -43,9 +66,17 @@ class RepositoriesContainerFragment : BaseFragment() {
             override fun onPageScrollStateChanged(state: Int) {}
             override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {}
             override fun onPageSelected(position: Int) {
-                searchView?.queryHint = "Search in ${adapter.getPageTitle(position)}"
+                searchView?.visible(position == 0)
             }
         })
+    }
+
+    override fun onOpenScope() {
+        scope = Toothpick.openScopes(Scopes.APP_SCOPE, Scopes.REPOSITORIES_CONTAINER_SCOPE + fragmentId)
+    }
+
+    override fun onCloseScope() {
+        Toothpick.closeScope(Scopes.REPOSITORIES_CONTAINER_SCOPE + fragmentId)
     }
 
     private inner class MyIssuesPagesAdapter : FragmentPagerAdapter(childFragmentManager) {

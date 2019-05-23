@@ -5,60 +5,93 @@ import androidx.paging.PagedList
 import com.arellomobile.mvp.InjectViewState
 import com.arellomobile.mvp.MvpPresenter
 import com.nanlagger.githubclient.Screens
+import com.nanlagger.githubclient.di.FavoriteFlag
+import com.nanlagger.githubclient.di.PrimitiveWrapper
 import com.nanlagger.githubclient.domain.entity.Repository
+import com.nanlagger.githubclient.domain.repository.DataSourceWithState
+import com.nanlagger.githubclient.domain.repository.GithubRepository
+import io.reactivex.Observable
+import io.reactivex.disposables.Disposable
 import ru.terrakok.cicerone.Router
+import timber.log.Timber
 import javax.inject.Inject
 
 @InjectViewState
 class RepositoriesListPresenter @Inject constructor(
-    private val repositoryDataSourceFactory: RepositoryDataSourceFactory,
+    private val githubRepository: GithubRepository,
+    @FavoriteFlag private val isFavorite: PrimitiveWrapper<Boolean>,
     private val router: Router
 ) : MvpPresenter<RepositoriesListView>() {
 
-    private val config = PagedList.Config.Builder()
-        .setPageSize(20)
-        .setInitialLoadSizeHint(20)
-        .setEnablePlaceholders(false)
-        .build()
-    private lateinit var currentDataSource: DataSource<Int, Repository>
+    private var currentDataSource: DataSource<*, Repository>? = null
     private var currentQuery: String = ""
+    private var fetchDisposable: Disposable? = null
+    private val callbacks = object : DataSourceWithState.Callbacks() {
+        override fun loadInitial(loading: Boolean) {
+            viewState.setLoading(loading)
+        }
+
+        override fun error(throwable: Throwable) {
+            viewState.showError(throwable.localizedMessage)
+        }
+
+        override fun loadZeroItem(isEmpty: Boolean) {
+            viewState.setEmpty(isEmpty)
+        }
+    }
+
 
     override fun onFirstViewAttach() {
-        createDataSource("")
-        viewState.setItems(createPagedList(currentDataSource))
+        fetch()
     }
 
     fun refresh() {
-        currentDataSource.invalidate()
-        createDataSource(currentQuery)
-        viewState.setItems(createPagedList(currentDataSource))
+        fetch()
     }
 
     fun submitQuery(query: String?) {
         currentQuery = query ?: ""
-        currentDataSource.invalidate()
-        createDataSource(currentQuery)
-        viewState.setItems(createPagedList(currentDataSource))
+        fetch()
     }
 
     fun openRepository(repository: Repository) {
         router.navigateTo(Screens.RepositoryInfoScreen(repository.fullName))
     }
 
-    private fun createPagedList(dataSource: DataSource<Int, Repository>) =
-        PagedList.Builder(dataSource, config)
-            .setFetchExecutor { it.run() }
-            .setNotifyExecutor { it.run() }
-            .build()
-
-    private fun createDataSource(query: String) {
-        currentDataSource = repositoryDataSourceFactory.create()
-            .apply {
-                if (this is DataSourceWithState) {
-                    this.query = query
-                    loadInitialListener = { loading -> viewState.setLoading(loading) }
-                    errorHandler = { error -> viewState.showError(error.localizedMessage) }
-                }
+    private fun clearDataSource() {
+        currentDataSource?.let {
+            it.invalidate()
+            if (it is DataSourceWithState) {
+                it.clear()
             }
+        }
     }
+
+    private fun searchRepository(): Observable<PagedList<Repository>> {
+        return if (isFavorite.value) {
+            githubRepository.getFavoriteRepositories(callbacks)
+        } else {
+            githubRepository.searchRepositories(currentQuery, callbacks)
+        }
+    }
+
+    private fun fetch() {
+        fetchDisposable?.dispose()
+        fetchDisposable = searchRepository()
+            .subscribe({
+                clearDataSource()
+                currentDataSource = it.dataSource
+                viewState.setItems(it)
+            }, {
+                Timber.e(it)
+            }, {
+                Timber.d("onComplete")
+            })
+    }
+
+    override fun onDestroy() {
+        clearDataSource()
+        fetchDisposable?.dispose()
+    }
+
 }

@@ -6,6 +6,7 @@ import androidx.paging.PagedListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.nanlagger.githubclient.R
 import com.nanlagger.githubclient.domain.entity.Repository
+import com.nanlagger.githubclient.tools.format
 import com.nanlagger.githubclient.tools.inflate
 import com.squareup.picasso.Picasso
 import kotlinx.android.extensions.LayoutContainer
@@ -33,18 +34,12 @@ class RepositoryAdapter(
         fun bind(repository: Repository) {
             containerView.setOnClickListener { onClickListener(repository) }
             textRepoName.text = repository.name
-            textAuthorName.text = repository.user.login
+            textDateCreated.text = repository.createdAt.format()
             textRepoDescription.text = repository.description
-            Picasso.get()
-                .load(repository.user.avatarUrl)
-                .placeholder(R.mipmap.avatar_placeholder)
-                .error(R.mipmap.avatar_placeholder)
-                .into(imageAuthorAvatar)
         }
 
         fun bindEmpty() {
             textRepoName.text = ""
-            textAuthorName.text = ""
             textRepoDescription.text = ""
         }
     }

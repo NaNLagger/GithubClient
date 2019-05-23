@@ -18,19 +18,6 @@ class AuthPresenter @Inject constructor(
 
     private val compositeDisposable = CompositeDisposable()
 
-    override fun onFirstViewAttach() {
-        authRepository.authResult
-            .filter { it is AuthResult.AccountResult }
-            .map { it as AuthResult.AccountResult }
-            .flatMap { if (it.error != null) Observable.error(it.error) else Observable.just(true)}
-            .subscribe({
-                router.newRootScreen(Screens.RepositoriesScreen)
-            }, { error ->
-                Timber.e(error)
-            })
-            .addTo(compositeDisposable)
-    }
-
     override fun onDestroy() {
         super.onDestroy()
         compositeDisposable.dispose()
@@ -38,5 +25,11 @@ class AuthPresenter @Inject constructor(
 
     fun login() {
         authRepository.login()
+                .subscribe({
+                    router.newRootScreen(Screens.RepositoriesScreen)
+                }, { error ->
+                    Timber.e(error)
+                })
+                .addTo(compositeDisposable)
     }
 }

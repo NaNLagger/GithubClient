@@ -21,6 +21,8 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.ViewCompat
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
+import java.text.SimpleDateFormat
+import java.util.*
 
 fun Resources.color(@ColorRes colorRes: Int, theme: Resources.Theme? = null): Int {
     return ResourcesCompat.getColor(this, colorRes, theme)
@@ -83,3 +85,5 @@ fun Disposable.addTo(compositeDisposable: CompositeDisposable) {
 fun Resources.drawable(@DrawableRes id: Int, theme: Resources.Theme? = null): Drawable? {
     return ResourcesCompat.getDrawable(this, id, theme)
 }
+
+fun Date.format(): String = SimpleDateFormat("dd.MM.yyyy 'at' HH:mm", Locale.getDefault()).format(this)

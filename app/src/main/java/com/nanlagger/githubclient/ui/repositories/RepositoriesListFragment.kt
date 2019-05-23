@@ -13,8 +13,8 @@ import com.nanlagger.githubclient.di.Scopes
 import com.nanlagger.githubclient.domain.entity.Repository
 import com.nanlagger.githubclient.presentation.repositories.RepositoriesListPresenter
 import com.nanlagger.githubclient.presentation.repositories.RepositoriesListView
-import com.nanlagger.githubclient.presentation.repositories.RepositoryDataSourceFactory
 import com.nanlagger.githubclient.tools.argument
+import com.nanlagger.githubclient.tools.visible
 import com.nanlagger.githubclient.ui.common.BaseFragment
 import kotlinx.android.synthetic.main.fragment_repositories.*
 import toothpick.Scope
@@ -44,7 +44,8 @@ class RepositoriesListFragment : BaseFragment(), RepositoriesListView {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        swipeRefresh.setOnRefreshListener { presenter.refresh() }
+        swipeContent.setOnRefreshListener { presenter.refresh() }
+        swipeEmpty.setOnRefreshListener { presenter.refresh() }
         recyclerRepositories.layoutManager = LinearLayoutManager(context)
         recyclerRepositories.adapter = adapter
     }
@@ -54,7 +55,6 @@ class RepositoriesListFragment : BaseFragment(), RepositoriesListView {
             .apply {
                 installModules(object : Module() {
                     init {
-                        bind(RepositoryDataSourceFactory::class.java)
                         bind(PrimitiveWrapper::class.java)
                             .withName(FavoriteFlag::class.java)
                             .toInstance(PrimitiveWrapper(isFavorite))
@@ -68,7 +68,8 @@ class RepositoriesListFragment : BaseFragment(), RepositoriesListView {
     }
 
     override fun setLoading(loading: Boolean) {
-        swipeRefresh.isRefreshing = loading
+        swipeContent.isRefreshing = loading
+        swipeEmpty.isRefreshing = loading
     }
 
     override fun setItems(items: PagedList<Repository>) {
@@ -77,6 +78,11 @@ class RepositoriesListFragment : BaseFragment(), RepositoriesListView {
 
     override fun showError(message: String) {
         showSnackMessage(message)
+    }
+
+    override fun setEmpty(isEmpty: Boolean) {
+        swipeEmpty.visible(isEmpty)
+        swipeContent.visible(!isEmpty)
     }
 
     fun submitQuery(query: String?) {

@@ -5,5 +5,6 @@ object Scopes {
 
     val AUTH_SCOPE = "auth_scope"
     val REPOSITORIES_LIST_SCOPE = "repositories_list_scope"
+    val REPOSITORIES_CONTAINER_SCOPE = "repositories_container_scope"
     val REPOSITORY_INFO_SCOPE = "repository_info_scope"
 }

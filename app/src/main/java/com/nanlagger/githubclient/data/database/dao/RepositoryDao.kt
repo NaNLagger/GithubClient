@@ -13,8 +13,11 @@ interface RepositoryDao : BaseDao<RepositoryEntity> {
     fun getRepositoryByFullName(fullName: String) : Single<RepositoryEntity>
 
     @Query("SELECT * FROM ${RepositoryEntity.TABLE_NAME} WHERE ${RepositoryEntity.FULL_NAME} LIKE '%' || :search  || '%' or ${RepositoryEntity.DESCRIPTION} LIKE '%' || :search  || '%'")
-    fun getRepositories(search: String): Flowable<List<RepositoryEntity>>
+    fun getRepositories(search: String): Single<List<RepositoryEntity>>
 
     @Query("SELECT * FROM ${RepositoryEntity.TABLE_NAME} LIMIT :offset, :limit")
     fun getRepositories(offset: Int, limit: Int): Single<List<RepositoryEntity>>
+
+    @Query("DELETE FROM ${RepositoryEntity.TABLE_NAME}")
+    fun clearRepositories()
 }
